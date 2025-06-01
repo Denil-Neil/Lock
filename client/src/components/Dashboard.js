@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   Heart,
   MessageCircle,
@@ -25,6 +26,7 @@ import {
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("discover");
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -184,7 +186,7 @@ const Dashboard = () => {
           ].map((item) => (
             <li key={item.id}>
               <button
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabClick(item.id)}
                 className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden ${
                   activeTab === item.id
                     ? `bg-gradient-to-r ${item.color} text-white shadow-lg transform scale-105`
@@ -280,6 +282,14 @@ const Dashboard = () => {
     </div>
   );
 
+  const handleTabClick = (tabId) => {
+    if (tabId === "profile") {
+      navigate("/profile");
+    } else {
+      setActiveTab(tabId);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "discover":
@@ -372,14 +382,17 @@ const Dashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-gradient-to-r from-navy-50 to-blue-50 rounded-2xl border border-navy-200 hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                  <div
+                    onClick={() => navigate("/profile")}
+                    className="p-6 bg-gradient-to-r from-navy-50 to-blue-50 rounded-2xl border border-navy-200 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-bold text-navy-800 text-lg">
-                          Complete Profile
+                          Edit Profile
                         </h3>
                         <p className="text-navy-600 text-sm">
-                          Add photos, bio, and interests
+                          Add photos, prompts, and update info
                         </p>
                       </div>
                       <Edit3 className="w-6 h-6 text-navy-600 group-hover:text-navy-800 transition-colors duration-200" />

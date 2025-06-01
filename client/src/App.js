@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import ProfileCompletion from "./components/ProfileCompletion";
+import Profile from "./components/Profile";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -25,6 +26,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <ProfileCompletion />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
             </PrivateRoute>
           }
         />

@@ -6,6 +6,7 @@ const passport = require("passport");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
+const profileRoutes = require("./routes/profile");
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,7 @@ app.use(passport.session());
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Test route
 app.get("/test", (req, res) => {

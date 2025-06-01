@@ -71,16 +71,56 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     ],
-    profilePictures: [
+    profilePictures: {
+      slot1: {
+        url: { type: String, default: null },
+        key: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      slot2: {
+        url: { type: String, default: null },
+        key: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      slot3: {
+        url: { type: String, default: null },
+        key: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      slot4: {
+        url: { type: String, default: null },
+        key: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+      slot5: {
+        url: { type: String, default: null },
+        key: { type: String, default: null },
+        uploadedAt: { type: Date, default: null },
+      },
+    },
+    mainPhotoSlot: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: 1, // Default to slot 1 as main photo
+    },
+    prompts: [
       {
-        url: String,
-        isMain: { type: Boolean, default: false },
-        uploadedAt: { type: Date, default: Date.now },
+        question: {
+          type: String,
+          required: true,
+        },
+        answer: {
+          type: String,
+          required: true,
+          maxLength: 300,
+        },
+        order: {
+          type: Number,
+          default: 0,
+        },
       },
     ],
-    profilePicture: {
-      type: String, // Keep for backward compatibility
-    },
     location: {
       type: {
         type: String,
@@ -229,8 +269,87 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Method to get main profile picture
 userSchema.methods.getMainProfilePicture = function () {
-  const mainPic = this.profilePictures.find((pic) => pic.isMain);
-  return mainPic ? mainPic.url : this.profilePicture;
+  const mainSlot = `slot${this.mainPhotoSlot}`;
+  return this.profilePictures[mainSlot]?.url || null;
+};
+
+// Method to get all photos as array (for compatibility)
+userSchema.methods.getPhotosArray = function () {
+  const photos = [];
+  for (let i = 1; i <= 5; i++) {
+    const slot = this.profilePictures[`slot${i}`];
+    if (slot && slot.url) {
+      photos.push({
+        slot: i,
+        url: slot.url,
+        key: slot.key,
+        uploadedAt: slot.uploadedAt,
+        isMain: i === this.mainPhotoSlot,
+      });
+    }
+  }
+  return photos;
+};
+
+// Method to get photo count
+userSchema.methods.getPhotoCount = function () {
+  let count = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (this.profilePictures[`slot${i}`]?.url) {
+      count++;
+    }
+  }
+  return count;
+};
+
+// Method to get next available slot
+userSchema.methods.getNextAvailableSlot = function () {
+  for (let i = 1; i <= 5; i++) {
+    if (!this.profilePictures[`slot${i}`]?.url) {
+      return i;
+    }
+  }
+  return null; // All slots are full
+};
+
+// Method to set photo in specific slot
+userSchema.methods.setPhotoInSlot = function (slot, url, key) {
+  if (slot < 1 || slot > 5) {
+    throw new Error("Invalid slot number. Must be between 1 and 5");
+  }
+
+  // Check if this is the first photo before setting it
+  const currentPhotoCount = this.getPhotoCount();
+
+  this.profilePictures[`slot${slot}`] = {
+    url: url,
+    key: key,
+    uploadedAt: new Date(),
+  };
+
+  // If this is the first photo, make it the main photo
+  if (currentPhotoCount === 0) {
+    this.mainPhotoSlot = slot;
+  }
+};
+
+// Method to clear photo from specific slot
+userSchema.methods.clearPhotoSlot = function (slot) {
+  if (slot < 1 || slot > 5) {
+    throw new Error("Invalid slot number. Must be between 1 and 5");
+  }
+
+  this.profilePictures[`slot${slot}`] = {
+    url: null,
+    key: null,
+    uploadedAt: null,
+  };
+
+  // If this was the main photo, set a new main photo
+  if (this.mainPhotoSlot === slot) {
+    const nextPhoto = this.getPhotosArray()[0];
+    this.mainPhotoSlot = nextPhoto ? nextPhoto.slot : 1;
+  }
 };
 
 // Method to check if user is within age range
